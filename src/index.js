@@ -4,6 +4,7 @@ import NewsApiService from './news-service'
 
 const formEl = document.querySelector("#search-form");
 const galleryEl = document.querySelector(".gallery");
+const inputEl = document.querySelector(".search-form input")
 const loadMoreBtn = document.querySelector(".load-more-btn");
 const newsApiService = new NewsApiService();
 formEl.addEventListener("submit", onSearch);
@@ -23,17 +24,16 @@ async function onSearch(evt) {
     if(isQueryVerified){
       await addGalleryMarkup(data)
       await checkLoadMoreImages(data) 
-    }
-
-    Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
+      Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
+    }    
 }
 
 function checkLoadMoreImages(data) {
   const totalImages = data.totalHits;
   newsApiService.loadedImages = newsApiService.loadedImages + data.hits.length;
+  const apiBug = newsApiService.loadedImages === 520; // maximum number of api images 520 instead of the specified 500  
 
-
-  if(newsApiService.loadedImages === totalImages){
+  if(newsApiService.loadedImages === totalImages || apiBug){
     loadMoreBtn.style.display = "none"
     
     window.addEventListener('scroll', handleScroll);
@@ -50,8 +50,10 @@ function checkLoadMoreImages(data) {
 
 function queryVerification({hits}) {
   const requestNotFound = hits.length === 0;
-  
-  if(requestNotFound){ 
+  const isEmptyInput = inputEl.value.trim() === "";
+
+
+  if(requestNotFound || isEmptyInput){ 
     Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.'); 
     return false;
   }
